@@ -3,6 +3,93 @@
 <head>
   <title>Register Page</title>
   <link rel="stylesheet" href="/css/style.css">
+  <style>
+    body {
+      background-color: #000;
+      color: #fff;
+      font-family: Arial, sans-serif;
+    }
+
+    h1 {
+      color: #fff;
+      text-align: center;
+      margin-top: 50px;
+    }
+
+    nav {
+      background-color: #333;
+      padding: 10px;
+      margin-bottom: 20px;
+    }
+
+    nav a {
+      color: #fff;
+      text-decoration: none;
+      margin-right: 10px;
+    }
+
+    nav a:hover {
+      text-decoration: underline;
+    }
+
+    h2 {
+      color: #fff;
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    form {
+      width: 300px;
+      margin: 0 auto;
+      background-color: #111;
+      padding: 20px;
+      border-radius: 5px;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    }
+
+    input[type="text"],
+    input[type="email"],
+    input[type="password"],
+    input[type="checkbox"] {
+      width: 100%;
+      padding: 10px;
+      border: none;
+      border-radius: 4px;
+      font-size: 16px;
+      margin-bottom: 10px;
+    }
+
+    input[type="checkbox"] {
+      margin-bottom: 20px;
+    }
+
+    button[type="submit"] {
+      background-color: #ffa500;
+      color: #fff;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 16px;
+      display: block;
+      margin: 0 auto;
+    }
+
+    button[type="submit"]:hover {
+      background-color: #ff8c00;
+    }
+
+    p {
+      text-align: center;
+      margin-top: 20px;
+    }
+
+    p a {
+      color: #337ab7;
+      text-decoration: none;
+      font-weight: bold;
+    }
+  </style>
   <script src="/js/popup.js" defer></script>
 </head>
 <body>
@@ -15,12 +102,12 @@
 
   <h2>Register</h2>
   <form action="/register" method="POST">
-    <input type="text" name="name" placeholder="Name" required><br><br>
-    <input type="email" name="email" placeholder="Email" required><br><br>
-    <input type="text" name="contact" placeholder="Contact" required><br><br>
-    <input type="password" name="password" placeholder="Password" required><br><br>
+    <input type="text" name="name" placeholder="Name" required><br>
+    <input type="email" name="email" placeholder="Email" required><br>
+    <input type="text" name="contact" placeholder="Contact" required><br>
+    <input type="password" name="password" placeholder="Password" required><br>
     <label for="isAdmin">Register as Admin:</label>
-    <input type="checkbox" name="isAdmin" id="isAdmin"><br><br>
+    <input type="checkbox" name="isAdmin" id="isAdmin"><br>
     <button type="submit">Register</button>
   </form>
 
