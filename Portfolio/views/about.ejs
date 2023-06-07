@@ -95,6 +95,37 @@
       border-radius: 5px;
       text-decoration: none;
     }
+
+    .add-project-form {
+      margin-top: 20px;
+      background-color: #fff;
+      border: 1px solid #ccc;
+      padding: 20px;
+    }
+
+    .add-project-form input[type="text"],
+    .add-project-form textarea {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 16px;
+      margin-bottom: 10px;
+    }
+
+    .add-project-form button[type="submit"] {
+      background-color: #333;
+      color: #fff;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+
+    .add-project-form button[type="submit"]:hover {
+      background-color: #555;
+    }
   </style>
 </head>
 <body>
@@ -113,21 +144,24 @@
   <div class="container">
     <a class="back-button" href="/search">Back</a>
 
-    <% if (loggedIn && current._id==user._id) { %>
-      <form action="/projects" method="POST">
-        <input type="text" name="title" placeholder="Title" required>
-        <textarea name="description" placeholder="Description" required></textarea>
-        <button type="submit">Add Project</button>
-      </form>
-      <br>
-    <% } %>
-
     <div class="profile">
       <h2>Profile Information</h2>
       <p><strong>Name:</strong> <%= user.name %></p>
       <p><strong>Email:</strong> <%= user.email %></p>
       <p><strong>Contact:</strong> <%= user.contact %></p>
     </div>
+
+    <% if (loggedIn && current._id==user._id) { %>
+      <div class="add-project-form">
+        <h2>Add Project</h2>
+        <form action="/projects" method="POST">
+          <input type="text" name="title" placeholder="Title" required>
+          <textarea name="description" placeholder="Description" required></textarea>
+          <button type="submit">Add Project</button>
+        </form>
+      </div>
+      <br>
+    <% } %>
 
     <div class="projects">
       <h2>Projects</h2>
