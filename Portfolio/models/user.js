@@ -1,4 +1,5 @@
 const { getDb } = require('../config/database');
+const bcrypt = require('bcrypt');
 
 class User {
   static collectionName = 'users';
@@ -35,6 +36,14 @@ class User {
     const collection = db.collection(User.collectionName);
     const user = await collection.findOne({ email: email });
     return user ? user.role : null;
+  }
+
+  static async comparePasswords(password, hashedPassword) {
+    return bcrypt.compare(password, hashedPassword);
+  }
+
+  async hashPassword() {
+    this.password = await bcrypt.hash(this.password, 10);
   }
 }
 

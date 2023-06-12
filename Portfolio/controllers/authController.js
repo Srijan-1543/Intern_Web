@@ -1,62 +1,145 @@
-const { getDb } = require('../config/database');
+const passport = require('passport');
+const bcrypt = require('bcryptjs');
 const User = require('../models/user');
 
 exports.loginPage = (req, res) => {
-    res.render('login', { showPopup: false });
-  };
-  
-exports.login = async (req, res) => {
-    try {
-        const { email, password } = req.body;
-        const user = await User.findByEmail(email);
-
-        if (user && user.password === password) {
-            req.session.loggedIn = true;
-            req.session.user = user;
-            res.redirect('/');
-        } 
-        else {
-            res.render('login', { error: 'Invalid email or password', showPopup: true });
-        }
-    } 
-    catch (err) {
-        console.error(err);
-        res.sendStatus(500);
-    }
+  res.render('login', { showPopup: false });
 };
-  
-  exports.registerPage = (req, res) => {
-    res.render('register');
-  };
-  
-  exports.register = async (req, res) => {
-    try {
-        const { name, email, contact, password, isAdmin } = req.body;
-    
-        const isEmailUnique = await User.isEmailUnique(email);
-        if (!isEmailUnique) {
-          return res.render('register', { error: 'Email is already registered' });
-        }
 
-        const role = isAdmin ? 'admin' : 'user';
-        const user = new User(name, email, contact, password, role);
-        await User.save(user);
-        res.redirect('/login');
-      } catch (err) {
-        console.error(err);
-        res.sendStatus(500);
-      }
-  };
-  
-  exports.isAdmin = (req, res, next) => {
-    const userRole = req.session.user && req.session.user.role;
-    if(userRole === 'admin') next();
-    else res.sendStatus(403);
-  };
+exports.login = async (req, res) => {
+  try {
+    const { email, password } = req.body;
+    const user = await User.findByEmail(email);
 
-  exports.logout = (req, res) => {
-    req.session.loggedIn = false;
-    req.session.user = null;
+    if (user && await User.comparePasswords(password, user.password)) {
+      req.session.loggedIn = true;
+      req.session.user = user;
+      res.redirect('/');
+    } else {
+      res.render('login', { error: 'Invalid email or password', showPopup: true });
+    }
+  } catch (err) {
+    console.error(err);
+    res.sendStatus(500);
+  }
+};
+
+
+exports.registerPage = (req, res) => {
+  res.render('register');
+};
+
+exports.register = async (req, res) => {
+  try {
+    const { name, email, contact, password, isAdmin } = req.body;
+
+    const isEmailUnique = await User.isEmailUnique(email);
+    if (!isEmailUnique) {
+      return res.render('register', { error: 'Email is already registered' });
+    }
+
+    const role = isAdmin ? 'admin' : 'user';
+    const user = new User(name, email, contact, password, role);
+    await user.hashPassword(); // Hash the password before saving
+    await User.save(user);
+    res.redirect('/login');
+  } catch (err) {
+    console.error(err);
+    res.sendStatus(500);
+  }
+};
+
+exports.isAdmin = (req, res, next) => {
+  if (req.isAuthenticated() && req.user.role === 'admin') {
+    next();
+  } else {
+    res.sendStatus(403);
+  }
+};
+
+exports.logout = (req, res) => {
+  console.log('tff');
+  req.logout();
+  console.log('tfff');
+  req.session.destroy((err) => {
+    if (err) {
+      console.error(err);
+    }
     res.redirect('/');
-  };
-  
+  });
+};
+
+
+exports.forgotPasswordPage = (req, res) => {
+  const message = req.query.message || ''; // Get the message from the query string
+  res.render('forgot-password', { message });
+};
+
+exports.forgotPassword = async (req, res) => {
+  try {
+    const { email } = req.body;
+    const user = await User.findByEmail(email);
+
+    if (!user) {
+      return res.render('forgot-password', { error: 'Email address not found', showPopup: true });
+    }
+
+    const resetToken = crypto.randomBytes(20).toString('hex');
+    user.resetToken = resetToken;
+    user.resetTokenExpiration = Date.now() + 3600000; // Token valid for 1 hour
+    await user.save();
+
+    // Send the reset password email here (implement your email sending logic)
+
+    res.render('forgot-password', { message: 'Password reset email sent', showPopup: true });
+  } catch (err) {
+    console.error(err);
+    res.sendStatus(500);
+  }
+};
+
+
+exports.resetPasswordPage = async (req, res) => {
+  try {
+    const { token } = req.params;
+    const user = await User.findOne({
+      resetToken: token,
+      resetTokenExpiration: { $gt: Date.now() }
+    });
+
+    if (!user) {
+      return res.render('reset-password', { error: 'Invalid or expired reset token' });
+    }
+
+    res.render('reset-password', { token });
+  } catch (err) {
+    console.error(err);
+    res.sendStatus(500);
+  }
+};
+
+exports.resetPassword = async (req, res) => {
+  try {
+    const { token } = req.params;
+    const { password } = req.body;
+    const user = await User.findOne({
+      resetToken: token,
+      resetTokenExpiration: { $gt: Date.now() }
+    });
+
+    if (!user) {
+      return res.render('reset-password', { error: 'Invalid or expired reset token' });
+    }
+
+    user.password = password;
+    user.resetToken = undefined;
+    user.resetTokenExpiration = undefined;
+    await user.hashPassword();
+    await user.save();
+
+    res.redirect('/login');
+  } catch (err) {
+    console.error(err);
+    res.sendStatus(500);
+  }
+};
