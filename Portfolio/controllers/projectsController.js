@@ -5,17 +5,17 @@ const User = require('../models/user');
 
 const getAllProjects = async (req, res) => {
   try {
-    console.log('ok');
+    console.log('####');
     const db = getDb();
-    const loggedIn = req.session.loggedIn || false;
-    const current = req.session.user;
-    console.log('Double Check');
-    const userId = req.query.userId || req.session.user._id;
-    console.log('Checking:::');
-    console.log(userId);
+    const loggedIn = req.isAuthenticated();
+    const current = req.user;
+    const userId = req.query.userId ? new ObjectId(req.query.userId) : current._id;
     const user = await db.collection('users').findOne({ _id: new ObjectId(userId)}); 
-    console.log('safe');
+    console.log(`User Id we are seeing: ${userId}`);
+    console.log('User data:');
     console.log(user);
+    console.log('Current:');
+    console.log(current);
     const users = await db.collection('users').find().toArray();
     const userIdMap = {};
 
@@ -25,7 +25,7 @@ const getAllProjects = async (req, res) => {
    
     let projects; 
     projects = await db.collection('projects').find({ userId: userId }).toArray();
-    console.log('ok');
+    console.log(projects);
     res.render('about', { loggedIn, userIdMap, user, current, projects });
   } catch (err) {
     console.error('Failed to get projects:', err);
@@ -37,7 +37,7 @@ const createProject = async (req, res) => {
   try {
     const { title, description } = req.body;
     const db = getDb();
-    const userId = req.session.user._id; 
+    const userId = req.user._id; 
     const project = new Project(title, description, userId);
     await db.collection('projects').insertOne(project);
     res.redirect('/projects');
@@ -52,8 +52,8 @@ const getEditProject = async (req, res) => {
     const projectId = req.params.id;
     const db = getDb();
     console.log(projectId);
-    console.log('User ID:' + req.session.user._id);
-    const project = await db.collection('projects').findOne({ _id: new ObjectId(projectId), userId: req.session.user._id });
+    console.log('User ID:' + req.user._id);
+    const project = await db.collection('projects').findOne({ _id: new ObjectId(projectId), userId: req.user._id });
     console.log(project);
     if (!project) {
       return res.status(404).send('Project not found');
@@ -70,12 +70,12 @@ const updateProject = async (req, res) => {
     const projectId = req.params.id;
     const { title, description } = req.body;
     const db = getDb();
-    const project = await db.collection('projects').findOne({ _id: new ObjectId(projectId), userId: req.session.user._id });
+    const project = await db.collection('projects').findOne({ _id: new ObjectId(projectId), userId: req.user._id });
     console.log(project);
     if (!project) {
       return res.status(404).send('Project not found');
     }
-    await db.collection('projects').updateOne({ _id: new ObjectId(projectId), userId: req.session.user._id }, { $set: { title, description } });
+    await db.collection('projects').updateOne({ _id: new ObjectId(projectId), userId: req.user._id }, { $set: { title, description } });
     res.redirect('/projects');
   } catch (err) {
     console.error('Failed to update project:', err);

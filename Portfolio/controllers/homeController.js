@@ -2,28 +2,27 @@ const { getDb } = require('../config/database');
 const User = require('../models/user');
 
 exports.homePage = async (req, res) => {
-    try {
-        const db = getDb();
-        const comments = await db.collection('comments').find().toArray();
-        const loggedIn = req.session.loggedIn || false;
+  try {
+    const db = getDb();
+    const comments = await db.collection('comments').find().toArray();
+    const loggedIn = req.isAuthenticated(); 
     
-        const users = await db.collection('users').find().toArray();
-        const userIdMap = {};
-        users.forEach(user => {
-          userIdMap[user._id.toString()] = user;
-        });
-    
-        const userEmail = req.session.user && req.session.user.email;
-        const userRole = userEmail ? await User.getRole(userEmail) : null;
-        const isAdmin = userRole === 'admin';
-        const user = req.session.user;
-    
-        res.render('home', { user, comments, loggedIn, userIdMap, isAdmin });
-      } catch (err) {
-        console.error(err);
-        res.sendStatus(500);
-      }
+    const users = await db.collection('users').find().toArray();
+    const userIdMap = {};
+    users.forEach(user => {
+      userIdMap[user._id.toString()] = user;
+    });
+
+    const user = req.user; 
+    const isAdmin = user && user.role === 'admin';
+
+    res.render('home', { user, comments, loggedIn, isAdmin, userIdMap });
+  } catch (err) {
+    console.error(err);
+    res.sendStatus(500);
+  }
 };
+
   
 exports.addComment = async (req, res) => {
     try {
